@@ -66,9 +66,44 @@ This parameters cames from the described chains and can be found in `params` fro
 ```coffeescript
 chain = new Chain m1 3, -> m2.method -> m3.method 'msg', -> m4 -> m5
 ```
-An alternative parameter syntax:
+An alternative parameter syntax is in various situations better to read:
 chain = new Chain m1(3) -> m2.method -> m3.method('msg') -> m4 -> m5
 
+## Example App
+The following example shows how to use the predefined MicroServices:
+```coffeescript
+Micros = require 'micros'
+MicroService = Micros.MicroService
+Chain = Micros.Chain
+Broadcast = Micros.Broadcast
+
+# Configure MicroService
+Micros.set 'ms_folder', 'services'              # Define the MicroService folder (Default is 'node_modules')
+
+# Spawm services
+Micros.spawn (service) ->                       # Spawn all processes with are corresponding API interface
+  eval "#{service.$name} = service"             # register the services in global scope
+
+###
+  There exist three MicroService examples: inc, add, print
+  inc: increase the number with one
+  add: adds two numbers
+  print: print the number on stdout
+###
+
+cb = ->
+  # Define Chain 1
+  inner_chain = new Chain inc -> inc -> inc
+  chain = new Chain add(3) -> inner_chain -> add(10) -> print
+  chain.exec 2
+
+  # Define Chain 2
+  broadcast = new Broadcast inner_chain, inc, add(2)
+  chain = add(3) -> broadcast -> add.sum -> print
+  chain.exec 5
+
+setTimeout cb, 2000
+```
 ## Messages
 The Inter Communication Message (ICM) from MPI's are use to send information between MicroServices. The messages are described in JSON and are planned with other formats in the future (like ProtoBuf).
 ```coffeescript

@@ -25,7 +25,7 @@ cb = ->
 
   # Define Chain 2
   broadcast = new Broadcast inner_chain, inner_chain, add(2)
-  chain = add(3) -> broadcast -> add.min -> print
+  chain = add(3) -> broadcast -> add.sum -> print
   chain.exec 5
 
 setTimeout cb, 2000
