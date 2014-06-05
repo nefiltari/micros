@@ -383,26 +383,34 @@ Micros.Broadcast = (chains...) ->
 
 ###
   Chains:
-    # Begin the chain at your desire
-    new Chain -> f1 -> f2 -> f3 -> f4 -> f5
-    new Chain f1 -> f2 -> f3 -> f4 -> f5
-
-    # Defining Broadcasts and Akkumulators (Gathers)
-    new Chain f1 -> f2 -> Broadcast(f3 -> f4, f3) -> f5
-
-    # Include Chains in Chains
+    The chains are valid CoffeeScript but can read as a flowing pipe.
+    Begin the chain at your desire:
+    ```coffeescript
+    chain1 = new Chain m1 -> m2 -> m3 -> m4 -> m5
+    chain2 = new Chain -> m1 -> m2 -> m3 -> m4 -> m5
+    chain3 = Chain -> m1 -> m2 -> m3 -> m4 -> m5
+    chain4 = m1 -> m2 -> m3 -> m4 -> m5
+    ```
+    Defining broadcasts and accumulators (Gathers):
+    ```coffeescript
+    chain = new Chain f1 -> f2 -> Broadcast(f3 -> f4, f3) -> f5
+    ```node
+    You can include Chains in Chains:
+    ```node
     inner_chain = new Chain -> f2 -> f3 -> f4
-    new Chain f1 -> inner_chain -> f5
-
-    # Use MicroService Methods to costimize your service and API
-    new Chain -> f1 -> f2.method -> f3 -> f4
-
-    # Use Parameters for better variation (works also with service methods)
-    new Chain f1 3, -> f2.method -> f3.method 'msg', -> f4 -> f5
-      # => is the first Parameter a String the value will be interpreted as Micro Service method
-
-    # Alternative Parameter Syntax
-    new Chain f1(3) -> f2.method -> f3.method('msg') -> f4 -> f5
+    chain = new Chain f1 -> inner_chain -> f5
+    ```
+    Use custom MicroService methods to better control your level of abstraction:
+    ```
+    chain = new Chain -> f1 -> f2.method -> f3 -> f4
+    ```
+    Use parameters for better variation (works also with service methods).
+    This parameters cames from the described chains and can be found in `params` from MicroService method definitions:
+    ```
+    chain = new Chain f1 3, -> f2.method -> f3.method 'msg', -> f4 -> f5
+    ```
+    An alternative parameter syntax:
+    chain = new Chain f1(3) -> f2.method -> f3.method('msg') -> f4 -> f5
 ###
 
 ###
