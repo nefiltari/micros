@@ -39,7 +39,7 @@ next req, res                                     # Only one request for all Bro
 ```
 Their always exist one response object with excepttion for an previous accumulate from a broadcast.
 
-## Chains:
+## Chains
 The chains are valid CoffeeScript but can read as a flowing pipe.
 Begin the chain at your desire:
 ```coffeescript
