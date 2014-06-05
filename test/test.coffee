@@ -1,15 +1,15 @@
 ## Libs
-coffee = require 'coffee-script'
-require 'coffee-script/register'
-_ = require 'underscore'
-async = require 'async'
+coffee = require '../node_modules/coffee-script'
+require '../node_modules/coffee-script/register'
+_ = require '../node_modules/underscore'
+async = require '../node_modules/async'
 
 ## FLD
 
-Micros = require 'micros'
+Micros = require '../micros.js'
 MicroService = Micros.MicroService
 Chain = Micros.Chain
-Broadcast = Micros.Broadcast
+Splitter = Micros.Splitter
 
 ## Code
 Micros.set 'ms_folder', 'services'
@@ -24,9 +24,10 @@ cb = ->
   #chain.exec 2
 
   # Define Chain 2
-  broadcast = new Broadcast inner_chain, inner_chain, add(2)
-  chain = add(3) -> broadcast -> add.sum -> print
+  splitter = new Splitter inner_chain, inner_chain, add(2)
+  chain = add(3) -> splitter -> add.sum -> print
   chain.exec 5
+  #console.log chain.value
 
 setTimeout cb, 2000
 

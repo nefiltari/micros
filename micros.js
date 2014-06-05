@@ -32,7 +32,7 @@
         return new Micros.Chain;
       });
     }
-    if ((chain != null ? chain._type : void 0) === Micros.Broadcast) {
+    if ((chain != null ? chain._type : void 0) === Micros.Splitter) {
       chain = new Micros.Chain(chain);
     }
     return chain;
@@ -74,7 +74,7 @@
   };
 
   Micros.MicroService = function(name) {
-    var ms;
+    var dequeue, ms;
     ms = function() {
       var chain, fn, method, params, service, _i;
       params = 2 <= arguments.length ? __slice.call(arguments, 0, _i = arguments.length - 1) : (_i = 0, []), fn = arguments[_i++];
@@ -138,80 +138,88 @@
     ms.$get = function(key) {
       return ms.$config[key];
     };
+    dequeue = function(arr) {
+      return (arr.splice(0, 1))[0];
+    };
     ms.$next = function() {
-      var chain, http, i, link, message, next, options, path, req, request, res, util, _i, _j, _len, _results;
+      var chain, http, last, link, message, next, options, path, req, request, res, util, _i, _results;
       req = 3 <= arguments.length ? __slice.call(arguments, 0, _i = arguments.length - 2) : (_i = 0, []), res = arguments[_i++], chain = arguments[_i++];
-      req = decompress(req);
       if (chain.length === 0) {
         return;
       }
+      req = decompress(req);
       util = require('util');
       next = chain.pop();
+      last = {};
       if (util.isArray(next)) {
         if ((_.last(chain)) != null) {
           chain[chain.length - 1].gather = {
             key: generate_key(),
-            services: next.length
+            services: Math.ceil(req.length / next.length) * next.length
           };
         }
       } else {
         next = [next];
       }
       _results = [];
-      for (i = _j = 0, _len = next.length; _j < _len; i = ++_j) {
-        link = next[i];
-        path = chain;
-        if (util.isArray(link)) {
-          path = path.concat(link);
-          link = path.pop();
-        }
-        message = {
-          request: req[i],
-          response: res,
-          sender: ms.$name,
-          chain: path
-        };
-        if (message.request == null) {
-          message.request = _.last(req);
-        }
-        if ((i + 1) === next.length && (req[i + 1] != null)) {
-          message.request = _.rest(req, i);
-        }
-        if (link.params != null) {
-          message.params = link.params;
-        }
-        if (link.gather != null) {
-          message.gather = link.gather;
-        }
-        if (link.method != null) {
-          message.method = link.method;
-        }
-        switch (link.api) {
-          case 'http':
-            http = require('http');
-            options = {
-              port: link.port
-            };
-            options.method = 'POST';
-            if (message.method != null) {
-              options.path = "/" + message.method;
+      while (req.length > 0) {
+        _results.push((function() {
+          var _j, _len, _results1;
+          _results1 = [];
+          for (_j = 0, _len = next.length; _j < _len; _j++) {
+            link = next[_j];
+            path = chain;
+            if (util.isArray(link)) {
+              path = path.concat(link);
+              link = path.pop();
             }
-            options.headers = {
-              'Content-Type': 'application/json'
-            };
-            request = http.request(options);
-            request.write(JSON.stringify(message));
-            _results.push(request.end());
-            break;
-          case 'ws':
-            if (!ms.$cache[link.name]) {
-              ms.$cache[link.name] = require('socket.io-client').connect("http://localhost:" + link.port);
+            if (req.length > 0) {
+              last = dequeue(req);
             }
-            _results.push(ms.$cache[link.name].emit('icm', message));
-            break;
-          default:
-            _results.push(void 0);
-        }
+            message = {
+              request: last,
+              response: res,
+              sender: ms.$name,
+              chain: path
+            };
+            if (link.params != null) {
+              message.params = link.params;
+            }
+            if (link.gather != null) {
+              message.gather = link.gather;
+            }
+            if (link.method != null) {
+              message.method = link.method;
+            }
+            switch (link.api) {
+              case 'http':
+                http = require('http');
+                options = {
+                  port: link.port
+                };
+                options.method = 'POST';
+                if (message.method != null) {
+                  options.path = "/" + message.method;
+                }
+                options.headers = {
+                  'Content-Type': 'application/json'
+                };
+                request = http.request(options);
+                request.write(JSON.stringify(message));
+                _results1.push(request.end());
+                break;
+              case 'ws':
+                if (!ms.$cache[link.name]) {
+                  ms.$cache[link.name] = require('socket.io-client').connect("http://localhost:" + link.port);
+                }
+                _results1.push(ms.$cache[link.name].emit('icm', message));
+                break;
+              default:
+                _results1.push(void 0);
+            }
+          }
+          return _results1;
+        })());
       }
       return _results;
     };
@@ -437,13 +445,13 @@
     };
     ch.value = (chain != null ? chain._type : void 0) === Micros.MicroService ? process_inner_chain(function() {
       return chain;
-    }).value : (chain != null ? chain._type : void 0) === Micros.Broadcast ? [chain.value] : (chain != null ? chain._type : void 0) === Micros.Chain || typeof chain === 'object' ? chain.value : typeof chain === 'function' ? process_inner_chain(chain).value : [];
+    }).value : (chain != null ? chain._type : void 0) === Micros.Splitter ? [chain.value] : (chain != null ? chain._type : void 0) === Micros.Chain || typeof chain === 'object' ? chain.value : typeof chain === 'function' ? process_inner_chain(chain).value : [];
     ch._this = this;
     ch._type = Micros.Chain;
     return ch;
   };
 
-  Micros.Broadcast = function() {
+  Micros.Splitter = function() {
     var bc, chains, chn;
     chains = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
     bc = function(fn) {
@@ -467,33 +475,41 @@
       return _results;
     })();
     bc._this = this;
-    bc._type = Micros.Broadcast;
+    bc._type = Micros.Splitter;
     return bc;
   };
 
 
   /*
     Chains:
-       * Begin the chain at your desire
-      new Chain -> f1 -> f2 -> f3 -> f4 -> f5
-      new Chain f1 -> f2 -> f3 -> f4 -> f5
-  
-       * Defining Broadcasts and Akkumulators (Gathers)
-      new Chain f1 -> f2 -> Broadcast(f3 -> f4, f3) -> f5
-  
-       * Include Chains in Chains
+      The chains are valid CoffeeScript but can read as a flowing pipe.
+      Begin the chain at your desire:
+      ```coffeescript
+      chain1 = new Chain m1 -> m2 -> m3 -> m4 -> m5
+      chain2 = new Chain -> m1 -> m2 -> m3 -> m4 -> m5
+      chain3 = Chain -> m1 -> m2 -> m3 -> m4 -> m5
+      chain4 = m1 -> m2 -> m3 -> m4 -> m5
+      ```
+      Defining Splitters and accumulators (Gathers):
+      ```coffeescript
+      chain = new Chain f1 -> f2 -> Splitter(f3 -> f4, f3) -> f5
+      ```node
+      You can include Chains in Chains:
+      ```node
       inner_chain = new Chain -> f2 -> f3 -> f4
-      new Chain f1 -> inner_chain -> f5
-  
-       * Use MicroService Methods to costimize your service and API
-      new Chain -> f1 -> f2.method -> f3 -> f4
-  
-       * Use Parameters for better variation (works also with service methods)
-      new Chain f1 3, -> f2.method -> f3.method 'msg', -> f4 -> f5
-         * => is the first Parameter a String the value will be interpreted as Micro Service method
-  
-       * Alternative Parameter Syntax
-      new Chain f1(3) -> f2.method -> f3.method('msg') -> f4 -> f5
+      chain = new Chain f1 -> inner_chain -> f5
+      ```
+      Use custom MicroService methods to better control your level of abstraction:
+      ```
+      chain = new Chain -> f1 -> f2.method -> f3 -> f4
+      ```
+      Use parameters for better variation (works also with service methods).
+      This parameters cames from the described chains and can be found in `params` from MicroService method definitions:
+      ```
+      chain = new Chain f1 3, -> f2.method -> f3.method 'msg', -> f4 -> f5
+      ```
+      An alternative parameter syntax:
+      chain = new Chain f1(3) -> f2.method -> f3.method('msg') -> f4 -> f5
    */
 
 
@@ -503,15 +519,15 @@
       next.chain      # further chain
       next.previous   # previous service
   
-       * Call ´next´ with multiple request for different messages to send on each broadcast link
-       * If there exist only one request object then all broadcast links will receive the same message
-      next req1, req2, re3, ..., res      # Multiple Requests for Broadcast
-      next req, res                       # Only one request for all Broadcast links
+       * Call ´next´ with multiple request for different messages to send on each Splitter link
+       * If there exist only one request object then all Splitter links will receive the same message
+      next req1, req2, re3, ..., res      # Multiple Requests for Splitter
+      next req, res                       # Only one request for all Splitter links
   
        * For a gather service (with gather key)
       (req[], res[], params..., next)     # `req` and `res` are arrays with all gathered requests and responses
       next.chain                          # The further chain (unchanged)
-      next.previous                       # Previous services from broadcast (Array)
+      next.previous                       # Previous services from Splitter (Array)
    */
 
 
@@ -521,14 +537,14 @@
       {                               # Object that saves MicroService information
         name: ms.$name
       },
-      [                               # Broadcast
-        [                             # First broadcast link as inner Chain
+      [                               # Splitter
+        [                             # First Splitter link as inner Chain
           {                           # First MicroService from an inner Chain
             name: ms.$name,
             params: ['first', 'second', 'third']
           }
         ],
-        [                             # Second broadcast link as inner Chain
+        [                             # Second Splitter link as inner Chain
           {                           # First MicroService from the second inner Chain
             name: ms.$name,
             method: 'action_handler'
@@ -538,7 +554,7 @@
           }
         ]
       ],
-      {                               # A Gather MicroService after a Broadcast
+      {                               # A Gather MicroService after a Splitter
         name: ms.$name,
         api: 'http'
         port: 3030
@@ -566,7 +582,7 @@
 
   /*
     Todo:
-      - Abort, Timeout the chain after a broadcast (gather)
+      - Abort, Timeout the chain after a Splitter (gather)
    */
 
 }).call(this);

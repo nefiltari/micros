@@ -19,7 +19,7 @@ runtime.sum = (req, res, next) ->
   res = req.reduce ((akk, val) -> val + akk), 0
   next res, res
 
-# A minimum function over all incomming numbers
+# A minimum function over all incoming numbers
 runtime.min = (req, res, next) ->
   res = req.reduce ((akk, val) -> if val < akk then val else akk), req[0]
   next res, res
@@ -30,8 +30,8 @@ add.$install runtime
 ## Module Export
 module.exports = add
 ```
-All MicroServices will be included with `require` and can be used in chains and other features. The method `next` calls the next MicroService of the underlying chain. For better functional support you can get the chain context in which the MicroService was called from `next` with `next.chain` for all further comming services and `next.previous` for the previous MicroService. You can call `next` with multiple request objects to differ data for next broadcast or an accumulate.
-If there exist only one request object for a upcomming broadcast, all MicroServices from the broadcast gets the same request:
+All MicroServices will be included with `require` and can be used in chains and other features. The method `next` calls the next MicroService of the underlying chain. For better functional support you can get the chain context in which the MicroService was called from `next` with `next.chain` for all further coming services and `next.previous` for the previous MicroService. You can call `next` with multiple request objects to differ data for next broadcast or an accumulate.
+If there exist only one request object for a upcoming broadcast, all MicroServices from the broadcast gets the same request:
 ```coffeescript
 next req1, req2, req3, reqn, res                  # Multiple requests for Broadcast
 # or
@@ -48,9 +48,10 @@ chain2 = new Chain -> m1 -> m2 -> m3 -> m4 -> m5
 chain3 = Chain -> m1 -> m2 -> m3 -> m4 -> m5
 chain4 = m1 -> m2 -> m3 -> m4 -> m5
 ```
-Defining broadcasts and accumulators (Gathers):
+Defining Splitters:
+Splitters can be: Scatters, Broadcasts, variable Scatters, variable Broadcasts
 ```coffeescript
-chain = new Chain m1 -> m2 -> Broadcast(m3 -> m4, m3) -> m5
+chain = new Chain m1 -> m2 -> Splitter(m3 -> m4, m3) -> m5
 ```
 You can include Chains in Chains:
 ```coffeescript
@@ -69,13 +70,15 @@ chain = new Chain m1 3, -> m2.method -> m3.method 'msg', -> m4 -> m5
 An alternative parameter syntax is in various situations better to read:
 chain = new Chain m1(3) -> m2.method -> m3.method('msg') -> m4 -> m5
 
+*Graphics coming soon*
+
 ## Example App
 The following example shows how to use the predefined MicroServices:
 ```coffeescript
 Micros = require 'micros'
 MicroService = Micros.MicroService
 Chain = Micros.Chain
-Broadcast = Micros.Broadcast
+Splitter = Micros.Splitter
 
 # Configure MicroService
 Micros.set 'ms_folder', 'services'              # Define the MicroService folder (Default is 'node_modules')
@@ -97,9 +100,9 @@ cb = ->
   chain = new Chain add(3) -> inner_chain -> add(10) -> print
   chain.exec 2
 
-  # Define Chain 2
-  broadcast = new Broadcast inner_chain, inc, add(2)
-  chain = add(3) -> broadcast -> add.sum -> print
+  # Define Chain 2 with a splitter
+  splitter = new Splitter inner_chain, inc, add(2)
+  chain = add(3) -> splitter -> add.sum -> print
   chain.exec 5
 
 setTimeout cb, 2000

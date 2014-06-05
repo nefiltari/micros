@@ -27,8 +27,8 @@ process_inner_chain = (fn) ->
   # If chain is a MicroService then the chain ends
   if chain?._type is Micros.MicroService
     chain = chain -> new Micros.Chain
-  # If chain is a Broadcast then wrap this in a chain
-  if chain?._type is Micros.Broadcast
+  # If chain is a Splitter then wrap this in a chain
+  if chain?._type is Micros.Splitter
     chain = new Micros.Chain chain
   # For a inner chain object: do nothing
   chain
@@ -119,58 +119,62 @@ Micros.MicroService = (name) ->
   ms.$get = (key) ->
     ms.$config[key]
 
+  # Enqueues an item from queue
+  dequeue = (arr) -> (arr.splice 0, 1)[0]
+
   # Pop the next MicroService from Chain-Stack and call the API
   ms.$next = (req..., res, chain) ->
-    req = decompress req
     return if chain.length is 0
+    req = decompress req
     util = require 'util'
     next = do chain.pop
+    last = {}
+    # Detect a Splitter
     if util.isArray next
       # Generate gather key if neccessary
       if (_.last chain)?
         # Modifie chain while the flow is active for request foreign gathers
         chain[chain.length - 1].gather =
           key: do generate_key
-          services: next.length
+          services: Math.ceil(req.length / next.length) * next.length
     else next = [next]
-    # Iterate over all broadcast chain links
-    for link, i in next
-      path = chain
-      # Process broadcast inner chain
-      if util.isArray link
-        # Construct the Gather
-        path = path.concat link
-        link = do path.pop
-      # Construct the message (ICM) (alternate use Protobuf?)
-      message =
-        request: req[i]
-        response: res
-        sender: ms.$name
-        chain: path
-      message.request = _.last req unless message.request?
-      # Multiple Message between two MircoServices
-      if (i+1) is next.length and req[i+1]?
-        message.request = _.rest req, i
-      message.params = link.params if link.params?
-      message.gather = link.gather if link.gather?
-      message.method = link.method if link.method?
-      # Switch between different API types
-      switch link.api
-        when 'http'
-          http = require 'http'
-          options = port: link.port
-          options.method = 'POST'
-          options.path = "/#{message.method}" if message.method?
-          options.headers = 'Content-Type': 'application/json'
-          request = http.request options
-          # Write and send the request
-          request.write JSON.stringify(message)
-          #console.log request
-          do request.end
-        when 'ws'
-          unless ms.$cache[link.name]
-            ms.$cache[link.name] = require('socket.io-client').connect "http://localhost:#{link.port}"
-          ms.$cache[link.name].emit 'icm', message
+    # Iterate over multiple scatters
+    while req.length > 0
+      # Iterate over all Splitter chain links
+      for link in next
+        path = chain
+        # Process Splitter inner chain
+        if util.isArray link
+          # Construct the Gather
+          path = path.concat link
+          link = do path.pop
+        # Construct the message (ICM) (alternate use Protobuf?)
+        last = dequeue(req) if req.length > 0
+        message =
+          request: last
+          response: res
+          sender: ms.$name
+          chain: path
+        message.params = link.params if link.params?
+        message.gather = link.gather if link.gather?
+        message.method = link.method if link.method?
+        # Switch between different API types
+        switch link.api
+          when 'http'
+            http = require 'http'
+            options = port: link.port
+            options.method = 'POST'
+            options.path = "/#{message.method}" if message.method?
+            options.headers = 'Content-Type': 'application/json'
+            request = http.request options
+            # Write and send the request
+            request.write JSON.stringify(message)
+            #console.log request
+            do request.end
+          when 'ws'
+            unless ms.$cache[link.name]
+              ms.$cache[link.name] = require('socket.io-client').connect "http://localhost:#{link.port}"
+            ms.$cache[link.name].emit 'icm', message
 
   # Spawn new child processes with service invoker (deamon)
   ms.$spawn = (name, port, cb = ->) ->
@@ -335,7 +339,7 @@ Micros.Chain = (chain) ->
     chain
 
   # Chain Execution to start the Flow
-  # Multiple Parameters: for beginning Broadcast with different messages
+  # Multiple Parameters: for beginning Splitter with different messages
   ch.exec =  (init...) ->
     init = decompress init
     reqres = init
@@ -348,7 +352,7 @@ Micros.Chain = (chain) ->
   ch.value =
     if chain?._type is Micros.MicroService
       process_inner_chain(-> chain).value
-    else if chain?._type is Micros.Broadcast
+    else if chain?._type is Micros.Splitter
       [chain.value]
     else if chain?._type is Micros.Chain or typeof chain is 'object'
       chain.value
@@ -360,8 +364,8 @@ Micros.Chain = (chain) ->
   ch._type = Micros.Chain
   ch
 
-Micros.Broadcast = (chains...) ->
-  # Combine Broadcast with after Chain
+Micros.Splitter = (chains...) ->
+  # Combine Splitter with after Chain
   bc = (fn) ->
     chain = new Micros.Chain fn
     chain.value = chain.value.concat [bc.value]
@@ -378,7 +382,7 @@ Micros.Broadcast = (chains...) ->
   #  return chain
 
   bc._this = @
-  bc._type = Micros.Broadcast
+  bc._type = Micros.Splitter
   bc
 
 ###
@@ -391,9 +395,9 @@ Micros.Broadcast = (chains...) ->
     chain3 = Chain -> m1 -> m2 -> m3 -> m4 -> m5
     chain4 = m1 -> m2 -> m3 -> m4 -> m5
     ```
-    Defining broadcasts and accumulators (Gathers):
+    Defining Splitters and accumulators (Gathers):
     ```coffeescript
-    chain = new Chain f1 -> f2 -> Broadcast(f3 -> f4, f3) -> f5
+    chain = new Chain f1 -> f2 -> Splitter(f3 -> f4, f3) -> f5
     ```node
     You can include Chains in Chains:
     ```node
@@ -419,15 +423,15 @@ Micros.Broadcast = (chains...) ->
     next.chain      # further chain
     next.previous   # previous service
 
-    # Call ´next´ with multiple request for different messages to send on each broadcast link
-    # If there exist only one request object then all broadcast links will receive the same message
-    next req1, req2, re3, ..., res      # Multiple Requests for Broadcast
-    next req, res                       # Only one request for all Broadcast links
+    # Call ´next´ with multiple request for different messages to send on each Splitter link
+    # If there exist only one request object then all Splitter links will receive the same message
+    next req1, req2, re3, ..., res      # Multiple Requests for Splitter
+    next req, res                       # Only one request for all Splitter links
 
     # For a gather service (with gather key)
     (req[], res[], params..., next)     # `req` and `res` are arrays with all gathered requests and responses
     next.chain                          # The further chain (unchanged)
-    next.previous                       # Previous services from broadcast (Array)
+    next.previous                       # Previous services from Splitter (Array)
 ###
 
 ###
@@ -436,14 +440,14 @@ Micros.Broadcast = (chains...) ->
     {                               # Object that saves MicroService information
       name: ms.$name
     },
-    [                               # Broadcast
-      [                             # First broadcast link as inner Chain
+    [                               # Splitter
+      [                             # First Splitter link as inner Chain
         {                           # First MicroService from an inner Chain
           name: ms.$name,
           params: ['first', 'second', 'third']
         }
       ],
-      [                             # Second broadcast link as inner Chain
+      [                             # Second Splitter link as inner Chain
         {                           # First MicroService from the second inner Chain
           name: ms.$name,
           method: 'action_handler'
@@ -453,7 +457,7 @@ Micros.Broadcast = (chains...) ->
         }
       ]
     ],
-    {                               # A Gather MicroService after a Broadcast
+    {                               # A Gather MicroService after a Splitter
       name: ms.$name,
       api: 'http'
       port: 3030
@@ -479,5 +483,5 @@ Micros.Broadcast = (chains...) ->
 
 ###
   Todo:
-    - Abort, Timeout the chain after a broadcast (gather)
+    - Abort, Timeout the chain after a Splitter (gather)
 ###
