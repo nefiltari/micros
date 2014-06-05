@@ -50,24 +50,24 @@ chain4 = m1 -> m2 -> m3 -> m4 -> m5
 ```
 Defining broadcasts and accumulators (Gathers):
 ```coffeescript
-chain = new Chain f1 -> f2 -> Broadcast(f3 -> f4, f3) -> f5
+chain = new Chain m1 -> m2 -> Broadcast(m3 -> m4, m3) -> m5
 ```
 You can include Chains in Chains:
 ```coffeescript
-inner_chain = new Chain -> f2 -> f3 -> f4
-chain = new Chain f1 -> inner_chain -> f5
+inner_chain = new Chain -> m2 -> m3 -> m4
+chain = new Chain m1 -> inner_chain -> m5
 ```
 Use custom MicroService methods to better control your level of abstraction:
 ```coffeescript
-chain = new Chain -> f1 -> f2.method -> f3 -> f4
+chain = new Chain -> m1 -> m2.method -> m3 -> m4
 ```
 Use parameters for better variation (works also with service methods).
 This parameters cames from the described chains and can be found in `params` from MicroService method definitions:
 ```coffeescript
-chain = new Chain f1 3, -> f2.method -> f3.method 'msg', -> f4 -> f5
+chain = new Chain m1 3, -> m2.method -> m3.method 'msg', -> m4 -> m5
 ```
 An alternative parameter syntax:
-chain = new Chain f1(3) -> f2.method -> f3.method('msg') -> f4 -> f5
+chain = new Chain m1(3) -> m2.method -> m3.method('msg') -> m4 -> m5
 
 ## Messages
 The Inter Communication Message (ICM) from MPI's are use to send information between MicroServices. The messages are described in JSON and are planned with other formats in the future (like ProtoBuf).
