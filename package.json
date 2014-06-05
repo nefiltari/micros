@@ -1,9 +1,8 @@
 {
   "name": "micros",
   "version": "0.9.1",
-  "description": "Add the MicroService manifesto to any project.",
+  "description": "A simple MicroService Framework",
   "main": "micros.js",
-  "private": true,
   "bin": "./bin/wrapper.js",
   "directories": {
     "test": "test"
