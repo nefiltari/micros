@@ -51,19 +51,19 @@ chain4 = m1 -> m2 -> m3 -> m4 -> m5
 Defining broadcasts and accumulators (Gathers):
 ```coffeescript
 chain = new Chain f1 -> f2 -> Broadcast(f3 -> f4, f3) -> f5
-```node
+```
 You can include Chains in Chains:
-```node
+```coffeescript
 inner_chain = new Chain -> f2 -> f3 -> f4
 chain = new Chain f1 -> inner_chain -> f5
 ```
 Use custom MicroService methods to better control your level of abstraction:
-```
+```coffeescript
 chain = new Chain -> f1 -> f2.method -> f3 -> f4
 ```
 Use parameters for better variation (works also with service methods).
 This parameters cames from the described chains and can be found in `params` from MicroService method definitions:
-```
+```coffeescript
 chain = new Chain f1 3, -> f2.method -> f3.method 'msg', -> f4 -> f5
 ```
 An alternative parameter syntax:
