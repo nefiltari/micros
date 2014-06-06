@@ -11,7 +11,7 @@ add.$set 'api', 'ws'                            # Set the API on websockets
 
 # Define the Runtime
 # Standard Addition
-runtime = (req, res, next, params...) ->        # The method definition follows an Express middleware with optional params
+runtime = (req, res, next, params...) ->        # The method definition like an Express middleware
   next req + params[0], req + params[0]
 
 # An accumulator or sum

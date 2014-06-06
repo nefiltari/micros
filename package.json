@@ -20,7 +20,7 @@
     "anti-monolitic"
   ],
   "author": "Ramastuh",
-  "license": "ISC",
+  "license": "MIT",
   "devDependencies": {
     "coffee-script": "^1.7.1",
     "chai": "^1.9.1",

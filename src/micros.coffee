@@ -35,7 +35,7 @@ process_inner_chain = (fn) ->
 
 ## Exports
 
-# Config
+# Define Config
 Micros.Config =
   ms_folder: 'node_modules'
   log_folder: 'logs'

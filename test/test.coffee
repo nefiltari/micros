@@ -20,8 +20,8 @@ Micros.spawn (service) -> eval "#{service.$name} = service"
 cb = ->
   # Define Chain 1
   inner_chain = new Chain inc -> inc -> inc
-  #chain = new Chain add(3) -> inner_chain -> add.sub(10) -> print
-  #chain.exec 2
+  chain = new Chain add(3) -> inner_chain -> add(10) -> print
+  chain.exec 2
 
   # Define Chain 2
   splitter = new Splitter inner_chain, inner_chain, add(2)
