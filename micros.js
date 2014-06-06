@@ -147,7 +147,6 @@
       if (chain.length === 0) {
         return;
       }
-      req = decompress(req);
       util = require('util');
       next = chain.pop();
       last = {};

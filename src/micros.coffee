@@ -125,7 +125,6 @@ Micros.MicroService = (name) ->
   # Pop the next MicroService from Chain-Stack and call the API
   ms.$next = (req..., res, chain) ->
     return if chain.length is 0
-    req = decompress req
     util = require 'util'
     next = do chain.pop
     last = {}

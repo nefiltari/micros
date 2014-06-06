@@ -68,7 +68,9 @@ This parameters cames from the described chains and can be found in `params` fro
 chain = new Chain m1 3, -> m2.method -> m3.method 'msg', -> m4 -> m5
 ```
 An alternative parameter syntax is in various situations better to read:
+```coffeescript
 chain = new Chain m1(3) -> m2.method -> m3.method('msg') -> m4 -> m5
+```
 
 *Graphics coming soon*
 
