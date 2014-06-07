@@ -179,6 +179,8 @@ Micros.MicroService = (name) ->
   ms.$spawn = (name, port, cb = ->) ->
     exec = require('child_process').exec
     try
+      require('fs').mkdirSync "#{process.cwd()}/#{Micros.Config['log_folder']}"
+    try
       ms.$config['port'] = port
       ms.$process = exec "#{__dirname}/bin/wrapper.js #{Micros.Config['ms_folder']}/#{name} #{port} > #{Micros.Config['log_folder']}/#{name}.log 2>&1"
     catch error
@@ -240,7 +242,7 @@ Micros.MicroService = (name) ->
     # Clusterized start if config is set
     if ms.$config.clusters? and ms.$config.clusters > 1
       cluster = require 'cluster'
-      if do cluster.isMaster
+      if cluster.isMaster
         process.title = "MicroService: #{ms.$name} (#{ms.$version}) [master]"
         # Start the workers
         _.times ms.$config.clusters, cluster.fork
