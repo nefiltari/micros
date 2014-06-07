@@ -59,11 +59,10 @@ Micros.spawn = (cb) ->
   services = fs.readdirSync "#{cwd}/#{Micros.Config['ms_folder']}"
   services = _.filter services, (ele) -> ele.match "^#{Micros.Config['prefix']}-(.*)"
   async.each services, (name) ->
-    try
-      service = require "#{cwd}/#{Micros.Config['ms_folder']}/#{name}"
-      service.$spawn name, port
-      cb service
-      port = port + 1
+    service = require "#{cwd}/#{Micros.Config['ms_folder']}/#{name}"
+    service.$spawn name, port
+    cb service
+    port = port + 1
 
 # MicroService Module
 Micros.MicroService = (name) ->

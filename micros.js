@@ -64,12 +64,10 @@
     });
     return async.each(services, function(name) {
       var service;
-      try {
-        service = require("" + cwd + "/" + Micros.Config['ms_folder'] + "/" + name);
-        service.$spawn(name, port);
-        cb(service);
-        return port = port + 1;
-      } catch (_error) {}
+      service = require("" + cwd + "/" + Micros.Config['ms_folder'] + "/" + name);
+      service.$spawn(name, port);
+      cb(service);
+      return port = port + 1;
     });
   };
 
