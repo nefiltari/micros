@@ -57,7 +57,7 @@
     var cwd, fs, port, services;
     fs = require('fs');
     cwd = process.cwd();
-    port = Micros.Config['start_port'];
+    port = parseInt(Micros.Config['start_port']);
     services = fs.readdirSync("" + cwd + "/" + Micros.Config['ms_folder']);
     services = _.filter(services, function(ele) {
       return ele.match("^" + Micros.Config['prefix'] + "-(.*)");

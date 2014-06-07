@@ -1,6 +1,6 @@
 {
   "name": "micros",
-  "version": "0.9.3",
+  "version": "0.9.4",
   "description": "A simple MicroService Framework",
   "main": "micros.js",
   "bin": "./bin/wrapper.js",

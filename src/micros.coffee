@@ -55,7 +55,7 @@ Micros.get = (key) ->
 Micros.spawn = (cb) ->
   fs = require 'fs'
   cwd = do process.cwd
-  port = Micros.Config['start_port']
+  port = parseInt Micros.Config['start_port']
   services = fs.readdirSync "#{cwd}/#{Micros.Config['ms_folder']}"
   services = _.filter services, (ele) -> ele.match "^#{Micros.Config['prefix']}-(.*)"
   async.each services, (name) ->
