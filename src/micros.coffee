@@ -181,6 +181,7 @@ Micros.MicroService = (name) ->
     try
       require('fs').mkdirSync "#{process.cwd()}/#{Micros.Config['log_folder']}"
     try
+      console.log name
       ms.$config['port'] = port
       ms.$process = exec "#{__dirname}/bin/wrapper.js #{Micros.Config['ms_folder']}/#{name} #{port} > #{Micros.Config['log_folder']}/#{name}.log 2>&1"
     catch error
@@ -199,7 +200,10 @@ Micros.MicroService = (name) ->
           responses: []
           previous: []
           services: message.gather.services
-          next: (req..., res) -> ms.$next.call ms, req, res, message.chain
+          next: (req..., res) ->
+            req.push res
+            req.push message.chain
+            ms.$next.apply ms, req
         ms.$gathers[key].next.chain = message.chain
         ms.$gathers[key].next.previous = []
         setTimeout (-> delete ms.$gathers[key] if ms.$gathers[key]?), ms.$config.timeout
@@ -222,7 +226,10 @@ Micros.MicroService = (name) ->
         # Free the Cache
         delete ms.$gathers[key]
     else # Process a normal flow
-      next = (req..., res) -> ms.$next.call ms, req, res, message.chain
+      next = (req..., res) ->
+        req.push res
+        req.push message.chain
+        ms.$next.apply ms, req
       next.chain = message.chain
       next.previous = message.sender
       # Fill param list

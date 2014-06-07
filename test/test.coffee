@@ -1,8 +1,8 @@
 ## Libs
-coffee = require '../node_modules/coffee-script'
-require '../node_modules/coffee-script/register'
-_ = require '../node_modules/underscore'
-async = require '../node_modules/async'
+coffee = require 'coffee-script'
+require 'coffee-script/register'
+_ = require 'underscore'
+async = require 'async'
 
 ## FLD
 
