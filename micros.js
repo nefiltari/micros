@@ -232,7 +232,6 @@
         require('fs').mkdirSync("" + (process.cwd()) + "/" + Micros.Config['log_folder']);
       } catch (_error) {}
       try {
-        console.log(name);
         ms.$config['port'] = port;
         ms.$process = exec("" + __dirname + "/bin/wrapper.js " + Micros.Config['ms_folder'] + "/" + name + " " + port + " > " + Micros.Config['log_folder'] + "/" + name + ".log 2>&1");
       } catch (_error) {
