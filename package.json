@@ -21,6 +21,10 @@
   ],
   "author": "Ramastuh",
   "license": "MIT",
+  "repository": {
+    "type" : "git"
+  , "url" : "http://github.com/nefiltari/micros.git"
+  },
   "devDependencies": {
     "coffee-script": "^1.7.1",
     "chai": "^1.9.1",
