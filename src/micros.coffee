@@ -350,7 +350,7 @@ Micros.Chain = (chain) ->
     init = decompress init
     reqres = init
     reqres.push {}        # Blank res object
-    reqres.push ch.value  # The process chain
+    reqres.push _.clone ch.value  # The process chain
     service = new Micros.MicroService 'router' # Dummy Router
     service.$next.apply service, reqres
 

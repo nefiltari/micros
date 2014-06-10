@@ -443,7 +443,7 @@
       init = decompress(init);
       reqres = init;
       reqres.push({});
-      reqres.push(ch.value);
+      reqres.push(_.clone(ch.value));
       service = new Micros.MicroService('router');
       return service.$next.apply(service, reqres);
     };
