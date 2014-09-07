@@ -1,7 +1,7 @@
 ## Export Hack
 Micros = exports? and exports or @Micros = {}
 
-## Libs
+## Libs (test)
 
 coffee = require 'coffee-script'
 require 'coffee-script/register'

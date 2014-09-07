@@ -22,8 +22,8 @@
   "author": "Ramastuh",
   "license": "MIT",
   "repository": {
-    "type" : "git"
-  , "url" : "http://github.com/nefiltari/micros.git"
+    "type": "git",
+    "url": "http://github.com/nefiltari/micros.git"
   },
   "devDependencies": {
     "coffee-script": "^1.7.1",
@@ -31,10 +31,10 @@
     "mocha": "^1.18.2"
   },
   "dependencies": {
-    "express": "^3.5.1",
-    "underscore": "^1.6.0",
     "async": "^0.4.0",
+    "express": "^3.5.1",
     "socket.io": "^0.9.17",
-    "socket.io-client": "^0.9.17"
+    "socket.io-client": "^0.9.17",
+    "underscore": "^1.6.0"
   }
 }
