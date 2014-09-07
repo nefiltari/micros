@@ -264,16 +264,16 @@ Micros.MicroService = (name) ->
       else
         process.title = "MicroService: #{ms.$name} (#{ms.$version}) [slave]"
         # Finalization
-        process.on 'SIGTERM', shutdown
-        process.on 'SIGINT', shutdown
+        #process.on 'SIGTERM', shutdown
+        #process.on 'SIGINT', shutdown
         # Shared listen
         ms.$listen (error) ->
           console.log error if error
     else # Normal start
       process.title = "MicroService: #{ms.$name} on port #{ms.$config.port}"
       # Finalization
-      process.on 'SIGTERM', shutdown
-      process.on 'SIGINT', shutdown
+      #process.on 'SIGTERM', shutdown
+      #process.on 'SIGINT', shutdown
 
       # Start the Listener
       ms.$listen (error) ->
@@ -353,7 +353,7 @@ Micros.Chain = (chain) ->
     reqres = init
     reqres.push {}        # Blank res object
     reqres.push _.clone ch.value  # The process chain
-    service = new Micros.MicroService 'router' # Dummy Router
+    service = new Micros.Router   # Dummy Router
     service.$next.apply service, reqres
 
   # Assimilate chaintypes to own chain

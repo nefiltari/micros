@@ -1,22 +1,37 @@
-# Closure Register Folder
-register = {}
+Micros.Router = ->
+  router = {}
 
-# Router key generator
-generate_router_key = (req) ->
-  "#{req.socket.remoteAddress}:#{req.socket.remotePort}:#{(Math.floor((do Math.random) * 10**8))}"
+  # Closure Register Folder
+  register = {}
 
-Micros.router = new MicroService 'router'
-Micros.router.$register = (req, cb) ->
-  key = generate_router_key req
-  register[key] = cb
+  # Router key generator
+  generate_router_key = (req) ->
+    "#{req.socket.remoteAddress}:#{req.socket.remotePort}:#{(Math.floor((do Math.random) * 10**8))}"
 
-Micros.router.$set 'api', 'ws'
+  router = new Micros.MicroService 'router'
+  router.$register = (req, cb) ->
+    key = generate_router_key req
+    register[key] = cb
+    { key: key }
 
-runtime = (req, res, next) ->
+  router.$exec = (chain, init...) ->
+    init = decompress init
+    reqres = init
+    reqres.push {}                      # Blank res object
+    reqres.push _.clone chain.value     # The process chain
+    router.$next.apply router, reqres
 
-runtime.finish = (req, res, next) ->
-  if register[req.key]?
-    register[req.key] res
-    delete register[req.key]
+  router.$set 'api', 'ws'
 
-Micros.router.$install runtime
+  runtime = (req, res, next) ->
+
+  runtime.finish = (req, res, next) ->
+    if register[req.key]?
+      register[req.key] res
+      delete register[req.key]
+
+  router.$install runtime
+
+  router._this = @
+  router._type = Micros.Router
+  router
