@@ -1,0 +1,27 @@
+0 info it worked if it ends with ok
+1 verbose cli [ 'node', '/usr/local/bin/npm', 'run', 'watch' ]
+2 info using npm@1.5.0-alpha-1
+3 info using node@v0.10.29
+4 verbose node symlink /usr/local/bin/node
+5 verbose run-script [ 'prewatch', 'watch', 'postwatch' ]
+6 info prewatch micros@0.9.9
+7 info watch micros@0.9.9
+8 verbose unsafe-perm in lifecycle true
+9 info micros@0.9.9 Failed to exec watch script
+10 error micros@0.9.9 watch: `coffee -j -c test -w -o . ./src`
+10 error Exit status 1
+11 error Failed at the micros@0.9.9 watch script.
+11 error This is most likely a problem with the micros package,
+11 error not with npm itself.
+11 error Tell the author that this fails on your system:
+11 error     coffee -j -c test -w -o . ./src
+11 error You can get their info via:
+11 error     npm owner ls micros
+11 error There is likely additional logging output above.
+12 error System Darwin 13.3.0
+13 error command "node" "/usr/local/bin/npm" "run" "watch"
+14 error cwd /Users/arashi/Projects/waynamic/micros
+15 error node -v v0.10.29
+16 error npm -v 1.5.0-alpha-1
+17 error code ELIFECYCLE
+18 verbose exit [ 1, true ]

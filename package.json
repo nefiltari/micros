@@ -9,8 +9,8 @@
   },
   "scripts": {
     "test": "mocha --compilers coffee:coffee-script",
-    "compile": "coffee -c -o . ./src",
-    "watch": "coffee -c -w -o . ./src"
+    "compile": "coffee -j -c -o . ./src",
+    "watch": "coffee -j -c -w -o . ./src"
   },
   "keywords": [
     "MicroService",
