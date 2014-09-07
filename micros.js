@@ -342,7 +342,6 @@
           process.title = "MicroService: " + ms.$name + " (" + ms.$version + ") [slave]";
           process.on('SIGTERM', shutdown);
           process.on('SIGINT', shutdown);
-          process.on('SIGKILL', shutdown);
           return ms.$listen(function(error) {
             if (error) {
               return console.log(error);
@@ -353,7 +352,6 @@
         process.title = "MicroService: " + ms.$name + " on port " + ms.$config.port;
         process.on('SIGTERM', shutdown);
         process.on('SIGINT', shutdown);
-        process.on('SIGKILL', shutdown);
         return ms.$listen(function(error) {
           if (!error) {
             return console.log("MicroService: '" + ms.$name + "' started on port: " + ms.$config.port);

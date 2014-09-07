@@ -266,7 +266,6 @@ Micros.MicroService = (name) ->
         # Finalization
         process.on 'SIGTERM', shutdown
         process.on 'SIGINT', shutdown
-        process.on 'SIGKILL', shutdown
         # Shared listen
         ms.$listen (error) ->
           console.log error if error
@@ -275,7 +274,6 @@ Micros.MicroService = (name) ->
       # Finalization
       process.on 'SIGTERM', shutdown
       process.on 'SIGINT', shutdown
-      process.on 'SIGKILL', shutdown
 
       # Start the Listener
       ms.$listen (error) ->
