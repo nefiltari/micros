@@ -244,6 +244,11 @@ Micros.MicroService = (name) ->
   # Set process behaviour for deamons and optionaly start a cluster (with load-balancer)
   ms.$deamon = (port) ->
     ms.$config['port'] = parseInt port
+    shutdown = ->
+      ms.$shutdown (error) ->
+        unless error
+          console.log "MicroService: '#{ms.$name}' stopped!"
+        else console.log error
     # Clusterized start if config is set
     if ms.$config.clusters? and ms.$config.clusters > 1
       cluster = require 'cluster'
@@ -259,20 +264,19 @@ Micros.MicroService = (name) ->
       else
         process.title = "MicroService: #{ms.$name} (#{ms.$version}) [slave]"
         # Finalization
-        process.on 'SIGTERM', ->
-          ms.$shutdown (error) ->
-            console.log error if error
+        process.on 'SIGTERM', shutdown
+        process.on 'SIGINT', shutdown
+        process.on 'SIGKILL', shutdown
         # Shared listen
         ms.$listen (error) ->
           console.log error if error
     else # Normal start
       process.title = "MicroService: #{ms.$name} on port #{ms.$config.port}"
       # Finalization
-      process.on 'SIGTERM', ->
-        ms.$shutdown (error) ->
-          unless error
-            console.log "MicroService: '#{ms.$name}' stopped!"
-          else console.log error
+      process.on 'SIGTERM', shutdown
+      process.on 'SIGINT', shutdown
+      process.on 'SIGKILL', shutdown
+
       # Start the Listener
       ms.$listen (error) ->
         unless error
