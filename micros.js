@@ -236,7 +236,7 @@
         error = _error;
         return setTimeout(cb, 0, error);
       }
-      return setTimeout(cb, 0);
+      return setTimeout(cb, 0, null, ms.$process);
     };
     ms.$call = function(message) {
       var key, next, stack;

@@ -184,7 +184,7 @@ Micros.MicroService = (name) ->
       ms.$process = exec "#{__dirname}/bin/wrapper.js #{Micros.Config['ms_folder']}/#{name} #{port} > #{Micros.Config['log_folder']}/#{name}.log 2>&1"
     catch error
       return setTimeout cb, 0, error
-    setTimeout cb, 0
+    setTimeout cb, 0, null, ms.$process
 
   # Call the MicroService API asynchronly with a ICM
   ms.$call = (message) ->
