@@ -515,12 +515,12 @@
        * ´next´ stand for a function with additional informations
       next.chain      # further chain
       next.previous   # previous service
-  
+
        * Call ´next´ with multiple request for different messages to send on each Splitter link
        * If there exist only one request object then all Splitter links will receive the same message
       next req1, req2, re3, ..., res      # Multiple Requests for Splitter
       next req, res                       # Only one request for all Splitter links
-  
+
        * For a gather service (with gather key)
       (req[], res[], params..., next)     # `req` and `res` are arrays with all gathered requests and responses
       next.chain                          # The further chain (unchanged)
